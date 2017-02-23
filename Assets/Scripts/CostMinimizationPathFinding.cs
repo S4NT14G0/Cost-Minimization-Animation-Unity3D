@@ -20,13 +20,19 @@ public class CostMinimizationPathFinding : MonoBehaviour {
         Debug.Log(this.transform.position);
         currentPosition = this.transform.position;
 	}
-	
-	// Update is called once per frame
-	void FixedUpdate () {
+
+    // Update is called once per frame
+    void FixedUpdate () {
+        // Keep track of time for movement
         timeSinceMovement += Time.deltaTime;
+
         // Keep moving if the target is farther than .50 away
 	    if (Vector3.Distance(currentPosition, target.position) > .50f && (timeSinceMovement > timeBetweenMovement))
         {
+
+            float averageCost = 0.0f;
+            int moves = 0;
+
             Dictionary<Vector3, float> possibleMovments = new Dictionary<Vector3, float>();
 
             for (int i = (int)currentPosition.x - 1; i <= (int)currentPosition.x + 1; i++)
@@ -40,16 +46,18 @@ public class CostMinimizationPathFinding : MonoBehaviour {
             }
 
             var sortedHeatMaps = from heatMapCoord in possibleMovments orderby heatMapCoord.Value ascending select heatMapCoord;
-            foreach(var item in sortedHeatMaps)
-            {
-                Debug.Log(item.Key + ", " + item.Value);
-            }
 
             Debug.DrawLine(currentPosition, sortedHeatMaps.First().Key, Color.green, 10000f);
+
+            averageCost = sortedHeatMaps.First().Value;
 
             currentPosition = sortedHeatMaps.First().Key;
 
             this.transform.position = currentPosition;
+
+            moves++;
+
+            Debug.Log((averageCost + moves) / 2);
 
             timeSinceMovement = 0;
         }
