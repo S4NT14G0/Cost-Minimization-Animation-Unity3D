@@ -17,9 +17,9 @@ public class CostMinimizationPathFinding : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         obstacles = GameObject.FindGameObjectsWithTag("Obstacle");
-        Debug.Log(this.transform.position);
         currentPosition = this.transform.position;
-	}
+    }
+    int moves = 0;
 
     // Update is called once per frame
     void FixedUpdate () {
@@ -30,8 +30,7 @@ public class CostMinimizationPathFinding : MonoBehaviour {
 	    if (Vector3.Distance(currentPosition, target.position) > .50f && (timeSinceMovement > timeBetweenMovement))
         {
 
-            float averageCost = 0.0f;
-            int moves = 0;
+            float cost = 0.0f;
 
             Dictionary<Vector3, float> possibleMovments = new Dictionary<Vector3, float>();
 
@@ -49,7 +48,7 @@ public class CostMinimizationPathFinding : MonoBehaviour {
 
             Debug.DrawLine(currentPosition, sortedHeatMaps.First().Key, Color.green, 10000f);
 
-            averageCost = sortedHeatMaps.First().Value;
+            cost = sortedHeatMaps.First().Value;
 
             currentPosition = sortedHeatMaps.First().Key;
 
@@ -57,7 +56,7 @@ public class CostMinimizationPathFinding : MonoBehaviour {
 
             moves++;
 
-            Debug.Log((averageCost + moves) / 2);
+            Debug.Log((cost + moves) / 2);
 
             timeSinceMovement = 0;
         }
