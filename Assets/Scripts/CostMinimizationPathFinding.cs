@@ -19,7 +19,6 @@ public class CostMinimizationPathFinding : MonoBehaviour {
         obstacles = GameObject.FindGameObjectsWithTag("Obstacle");
         currentPosition = this.transform.position;
     }
-    int moves = 0;
 
     // Update is called once per frame
     void FixedUpdate () {
@@ -30,33 +29,30 @@ public class CostMinimizationPathFinding : MonoBehaviour {
 	    if (Vector3.Distance(currentPosition, target.position) > .50f && (timeSinceMovement > timeBetweenMovement))
         {
 
-            float cost = 0.0f;
-
             Dictionary<Vector3, float> possibleMovments = new Dictionary<Vector3, float>();
 
-            for (int i = (int)currentPosition.x - 1; i <= (int)currentPosition.x + 1; i++)
+            for (float i = currentPosition.x - 1; i <= currentPosition.x +1; i += .25f)
             {
-                for (int j = (int) currentPosition.z - 1; j <= (int) currentPosition.z + 1; j++)
+                for (float j =  currentPosition.z - 1; j <=  currentPosition.z + 1; j += .25f)
                 {
                     Vector3 possibleNextPosition = new Vector3(i, 0.5f, j);
                     float possibleNextPositionCost = calculateObstructionCostAroundNextCoord(possibleNextPosition, target.position);
                     possibleMovments.Add(possibleNextPosition, possibleNextPositionCost);
                 }
+
             }
 
+            // Use lynq query to sort our dictionary
             var sortedHeatMaps = from heatMapCoord in possibleMovments orderby heatMapCoord.Value ascending select heatMapCoord;
 
+            // Draw our line 
             Debug.DrawLine(currentPosition, sortedHeatMaps.First().Key, Color.green, 10000f);
 
-            cost = sortedHeatMaps.First().Value;
+            // Move to new position
+            this.transform.position = sortedHeatMaps.First().Key;
 
-            currentPosition = sortedHeatMaps.First().Key;
-
-            this.transform.position = currentPosition;
-
-            moves++;
-
-            Debug.Log((cost + moves) / 2);
+            // Set agent's current position after movement
+            this.currentPosition = sortedHeatMaps.First().Key;
 
             timeSinceMovement = 0;
         }
@@ -64,19 +60,21 @@ public class CostMinimizationPathFinding : MonoBehaviour {
 
     float calculateObstructionCostAroundNextCoord(Vector3 possibleNextPos, Vector3 targetPos)
     {
-        float costSum = Vector3.Distance(possibleNextPos, targetPos);
-        possibleNextPos = possibleNextPos * this.GetComponent<SphereCollider>().radius;
+        float costSum = 0;
+        // |P(x,y,z) - Pgoal|
+        costSum += Vector3.Magnitude(possibleNextPos - targetPos);
 
         foreach (GameObject obstacle in obstacles)
         {
-            float obstacleForceFieldDistance = obstacle.GetComponent<CapsuleCollider>().radius;
-            Vector3 distanceFromForceField = obstacle.transform.position * obstacleForceFieldDistance;
+            float obstacleForceFieldDistance = obstacle.GetComponent<CapsuleCollider>().radius * 2;
 
-            float distanceFromObstacle = Vector3.Distance(possibleNextPos, distanceFromForceField);
+            Vector3 distanceFromForceField = obstacle.transform.position;
 
-            if (distanceFromObstacle > 0 && distanceFromObstacle <= obstacleForceFieldDistance)
+            float distanceFromObstacle = Vector3.Distance(possibleNextPos, obstacle.transform.position);
+
+            if (distanceFromObstacle > 0 && distanceFromObstacle <= obstacleForceFieldDistance + this.GetComponent<SphereCollider>().radius)
             {
-                costSum += Mathf.Log(obstacleForceFieldDistance / distanceFromObstacle);
+                costSum += Mathf.Log(obstacleForceFieldDistance + this.GetComponent<SphereCollider>().radius / distanceFromObstacle );
             }
         }
 
