@@ -12,11 +12,14 @@ public class CostMinimizationPathFinding : MonoBehaviour {
     float timeSinceMovement = 0;
 
     GameObject[] obstacles;
+    GameObject[] agents;
+
     Vector3 currentPosition;
 
 	// Use this for initialization
 	void Start () {
         obstacles = GameObject.FindGameObjectsWithTag("Obstacle");
+        agents = GameObject.FindGameObjectsWithTag("Agent");
         currentPosition = this.transform.position;
     }
 
@@ -79,5 +82,32 @@ public class CostMinimizationPathFinding : MonoBehaviour {
         }
 
         return costSum;
+    }
+
+    float calculateAgentCostAroundNextCoord(Vector3 possibleNextPos, Vector3 targetPos)
+    {
+
+        // Squared Distance of agent A and B = Square Magnitude (agentA.position + agentA.velocity - agentB.postion - agentB.velocity)
+
+        //k position difference = agentA.position - agentB.position
+        //q velocity difference = agentA.position - agentB.velocity
+
+        // Squared distance of agent A and B = Square Magnitude (k + q)
+
+        // t* = - (k dot q) / Square Magnitude (q)
+
+
+        //Based on instantaneous velocity now
+
+        // Squared distance of agent A and B (agentA.velocity) = Square Magnitue(k - ((k.dot(q) / Square Magnitude (q)) * q^T )
+
+        // Energy between agent A and B ( Velocity of A) = log (-(Squared distance of agent A and B (agentA.velocity) / 2 * Summation 
+
+        foreach (GameObject agent in agents)
+        {
+
+        }
+
+        return 1.0f;
     }
 }
