@@ -16,6 +16,8 @@ public class CostMinimizationPathFinding : MonoBehaviour {
 
     Vector3 currentPosition;
 
+    public Vector3 agentVelocity;
+    
 	// Use this for initialization
 	void Start () {
         obstacles = GameObject.FindGameObjectsWithTag("Obstacle");
@@ -40,6 +42,7 @@ public class CostMinimizationPathFinding : MonoBehaviour {
                 {
                     Vector3 possibleNextPosition = new Vector3(i, 0.5f, j);
                     float possibleNextPositionCost = calculateObstructionCostAroundNextCoord(possibleNextPosition, target.position);
+                    float possibleNextPositionPedestrianCost = calculateAgentCostAroundNextCoord(possibleNextPosition, target.position);
                     possibleMovments.Add(possibleNextPosition, possibleNextPositionCost);
                 }
 
@@ -92,22 +95,38 @@ public class CostMinimizationPathFinding : MonoBehaviour {
         //k position difference = agentA.position - agentB.position
         //q velocity difference = agentA.position - agentB.velocity
 
-        // Squared distance of agent A and B = Square Magnitude (k + q)
-
-        // t* = - (k dot q) / Square Magnitude (q)
-
-
         //Based on instantaneous velocity now
 
-        // Squared distance of agent A and B (agentA.velocity) = Square Magnitue(k - ((k.dot(q) / Square Magnitude (q)) * q^T )
+        // Squared distance of agent A and B (agentA.velocity) = Square Magnitue(k - ((k.dot(q) / Square Magnitude (q)) * q.Transpose) )
+        float gaussianDistance = 100000000f;
 
-        // Energy between agent A and B ( Velocity of A) = log (-(Squared distance of agent A and B (agentA.velocity) / 2 * Summation 
-
+        // Energy between agent A and B ( Velocity of A) = log (-Squared distance of agent A and B (agentA.velocity) / gaussian distribution <-- Set yourself and experiment 
+        float energySum = 0;
+        agentVelocity = (possibleNextPos - this.transform.position) / timeBetweenMovement;
         foreach (GameObject agent in agents)
         {
 
-        }
+            Vector3 k = agent.transform.position - transform.position;
+            Vector3 q = agent.GetComponent<CostMinimizationPathFinding>().agentVelocity - this.agentVelocity;
+            Matrix4x4 qTransposed = new Matrix4x4();
+            qTransposed.SetTRS(q, this.transform.rotation, this.transform.localScale);
+            float sqDistAandB = Vector3.SqrMagnitude(k - ((Vector3.Dot(k, q) / Vector3.SqrMagnitude(q)) * q));
+            if (!System.Single.IsNaN(sqDistAandB))
+            {
+                //Debug.Log(sqDistAandB);
 
-        return 1.0f;
+                float energy = Mathf.Log(-sqDistAandB / gaussianDistance);
+                if (!System.Single.IsNaN(energy))
+                {
+                    Debug.Log(energy);
+
+                    energySum += Mathf.Log(-sqDistAandB / gaussianDistance);
+
+                }
+            }
+
+
+        }
+        return energySum;
     }
 }
